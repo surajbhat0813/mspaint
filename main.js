@@ -1,14 +1,19 @@
 const canvas_body = document.getElementById("canvas-body");
 const ctx = canvas_body.getContext("2d");
+const fillColorPicker = document.getElementById("fill-color-picker");
 
+// =========================
 // Drawing properties
+// =========================
 let strokeColor = "#000000";
-let fillColor = "#000000";
+let fillColor = "#ff0000";
 let lineWidth = 2;
 let brushSize = 10;
 let eraserSize = 20;
 
+// =========================
 // Drawing state
+// =========================
 let currentTool = "pencil";
 let isDrawing = false;
 let startX = null;
@@ -18,15 +23,12 @@ let currentY = null;
 let lastX = null;
 let lastY = null;
 
-// Store the current drawing state for preview
+// Canvas preview state
 let savedImageData = null;
 
-// Text input state
-let textInput = null;
-let textStartX = null;
-let textStartY = null;
-
-// Set canvas internal size to match its display size
+// =========================
+// Canvas resize
+// =========================
 function resizeCanvas() {
   canvas_body.width = canvas_body.offsetWidth;
   canvas_body.height = canvas_body.offsetHeight;
@@ -41,7 +43,9 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
-// Convert pointer position → canvas coordinates
+// =========================
+// Coordinate mapping
+// =========================
 function getCanvasCoordinates(event) {
   const rect = canvas_body.getBoundingClientRect();
   const scaleX = canvas_body.width / rect.width;
@@ -53,7 +57,9 @@ function getCanvasCoordinates(event) {
   };
 }
 
-// Save / restore canvas state
+// =========================
+// Canvas state helpers
+// =========================
 function saveCanvasState() {
   savedImageData = ctx.getImageData(0, 0, canvas_body.width, canvas_body.height);
 }
@@ -64,7 +70,9 @@ function restoreCanvasState() {
   }
 }
 
+// =========================
 // Tool selection
+// =========================
 function switchTool(toolName) {
   currentTool = toolName;
 
@@ -94,17 +102,24 @@ function switchTool(toolName) {
   startX = startY = currentX = currentY = lastX = lastY = null;
   savedImageData = null;
 
-  if (textInput) {
-    textInput.remove();
-    textInput = null;
-  }
+const fillWrapper = document.querySelector(".fill-color-wrapper");
+fillWrapper.style.display = toolName === "fill" ? "block" : "none";
 }
 
+// =========================
 // Tool click handlers
+// =========================
 document.querySelectorAll(".tool-item").forEach((item) => {
   item.addEventListener("click", () => {
     switchTool(item.dataset.tool);
   });
+});
+
+// =========================
+// Fill color picker
+// =========================
+fillColorPicker.addEventListener("input", (e) => {
+  fillColor = e.target.value;
 });
 
 /* ======================================================
@@ -113,15 +128,13 @@ document.querySelectorAll(".tool-item").forEach((item) => {
 
 // POINTER DOWN
 canvas_body.addEventListener("pointerdown", (event) => {
-  // Only block non-left mouse clicks (touch/pen unaffected)
   if (event.pointerType === "mouse" && event.button !== 0) return;
 
   canvas_body.setPointerCapture(event.pointerId);
-
   const { x, y } = getCanvasCoordinates(event);
-
   const twoClickTools = ["line", "rectangle", "circle"];
 
+  // -------- Shapes --------
   if (twoClickTools.includes(currentTool)) {
     if (!isDrawing) {
       startX = x;
@@ -155,7 +168,10 @@ canvas_body.addEventListener("pointerdown", (event) => {
       startX = startY = null;
       savedImageData = null;
     }
-  } else if (["pencil", "brush", "eraser"].includes(currentTool)) {
+  }
+
+  // -------- Freehand --------
+  else if (["pencil", "brush", "eraser"].includes(currentTool)) {
     isDrawing = true;
     lastX = x;
     lastY = y;
@@ -179,6 +195,19 @@ canvas_body.addEventListener("pointerdown", (event) => {
       ctx.globalCompositeOperation = "destination-out";
     }
   }
+
+  // -------- Fill --------
+  else if (currentTool === "fill") {
+    const imageData = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1);
+    const targetColor = [
+      imageData.data[0],
+      imageData.data[1],
+      imageData.data[2],
+      imageData.data[3],
+    ];
+    const fillColorArray = hexToRgba(fillColor);
+    floodFill(x, y, targetColor, fillColorArray);
+  }
 });
 
 // POINTER MOVE
@@ -186,13 +215,10 @@ canvas_body.addEventListener("pointermove", (event) => {
   if (!isDrawing) return;
 
   const { x, y } = getCanvasCoordinates(event);
-  currentX = x;
-  currentY = y;
 
   if (["line", "rectangle", "circle"].includes(currentTool)) {
     restoreCanvasState();
 
-    ctx.setLineDash([5, 5]);
     ctx.strokeStyle = strokeColor;
     ctx.lineWidth = lineWidth;
 
@@ -209,20 +235,15 @@ canvas_body.addEventListener("pointermove", (event) => {
       ctx.arc(startX, startY, r, 0, Math.PI * 2);
       ctx.stroke();
     }
-
-    ctx.setLineDash([]);
   } else if (["pencil", "brush", "eraser"].includes(currentTool)) {
     ctx.lineTo(x, y);
     ctx.stroke();
-    lastX = x;
-    lastY = y;
   }
 });
 
-// POINTER UP / CANCEL
+// POINTER END
 function endPointer() {
   isDrawing = false;
-  lastX = lastY = null;
   ctx.globalCompositeOperation = "source-over";
 }
 
@@ -230,5 +251,62 @@ canvas_body.addEventListener("pointerup", endPointer);
 canvas_body.addEventListener("pointerleave", endPointer);
 canvas_body.addEventListener("pointercancel", endPointer);
 
-// Initialize
+// =========================
+// Color helpers
+// =========================
+function hexToRgba(hex) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return [r, g, b, 255];
+}
+
+// =========================
+// Flood fill
+// =========================
+function floodFill(x, y, targetColor, fillColor) {
+  const imageData = ctx.getImageData(
+    0,
+    0,
+    canvas_body.width,
+    canvas_body.height
+  );
+  const data = imageData.data;
+  const width = canvas_body.width;
+  const height = canvas_body.height;
+
+  const stack = [[Math.floor(x), Math.floor(y)]];
+
+  function getPixel(x, y) {
+    const i = (y * width + x) * 4;
+    return [data[i], data[i + 1], data[i + 2], data[i + 3]];
+  }
+
+  function setPixel(x, y, c) {
+    const i = (y * width + x) * 4;
+    data[i] = c[0];
+    data[i + 1] = c[1];
+    data[i + 2] = c[2];
+    data[i + 3] = c[3];
+  }
+
+  function match(a, b) {
+    return a.every((v, i) => v === b[i]);
+  }
+
+  while (stack.length) {
+    const [px, py] = stack.pop();
+    if (px < 0 || py < 0 || px >= width || py >= height) continue;
+    if (!match(getPixel(px, py), targetColor)) continue;
+
+    setPixel(px, py, fillColor);
+    stack.push([px + 1, py], [px - 1, py], [px, py + 1], [px, py - 1]);
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+}
+
+// =========================
+// Init
+// =========================
 switchTool("pencil");

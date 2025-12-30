@@ -1,59 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="global.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MS Paint Clone</title>
+  <link rel="stylesheet" href="global.css" />
 </head>
 <body>
-    <div class="main-body">
-        <div class="toolbox">
-            <div class="tool-section">
-                <div class="tool-item active" data-tool="pencil" title="Pencil">
-                    <span class="tool-icon">✏️</span>
-                    <span class="tool-name">Pencil</span>
-                </div>
-                <div class="tool-item" data-tool="brush" title="Brush">
-                    <span class="tool-icon">🖌️</span>
-                    <span class="tool-name">Brush</span>
-                </div>
-                <div class="tool-item" data-tool="eraser" title="Eraser">
-                    <span class="tool-icon">🧹</span>
-                    <span class="tool-name">Eraser</span>
-                </div>
-                <div class="tool-item" data-tool="line" title="Line">
-                    <span class="tool-icon">📏</span>
-                    <span class="tool-name">Line</span>
-                </div>
-                <div class="tool-item" data-tool="rectangle" title="Rectangle">
-                    <span class="tool-icon">▭</span>
-                    <span class="tool-name">Rectangle</span>
-                </div>
-                <div class="tool-item" data-tool="circle" title="Circle">
-                    <span class="tool-icon">○</span>
-                    <span class="tool-name">Circle</span>
-                </div>
-                <div class="tool-item" data-tool="fill" title="Fill">
-                    <span class="tool-icon">🪣</span>
-                    <span class="tool-name">Fill</span>
-                </div>
-                <div class="tool-item" data-tool="text" title="Text">
-                    <span class="tool-icon">A</span>
-                    <span class="tool-name">Text</span>
-                </div>
-                <div class="tool-item" data-tool="eyedropper" title="Eyedropper">
-                    <span class="tool-icon">💧</span>
-                    <span class="tool-name">Pick Color</span>
-                </div>
-                <div class="tool-item" data-tool="select" title="Select">
-                    <span class="tool-icon">⬜</span>
-                    <span class="tool-name">Select</span>
-                </div>
-            </div>
+  <div class="main-body">
+    <div class="toolbox">
+      <div class="tool-section">
+
+        <div class="tool-item active" data-tool="pencil" title="Pencil">
+          <span class="tool-icon">✏️</span>
+          <span class="tool-name">Pencil</span>
         </div>
-        <canvas id="canvas-body" class="canvas-body"></canvas>
+
+        <div class="tool-item" data-tool="brush" title="Brush">
+          <span class="tool-icon">🖌️</span>
+          <span class="tool-name">Brush</span>
+        </div>
+
+        <div class="tool-item" data-tool="eraser" title="Eraser">
+          <span class="tool-icon">🧹</span>
+          <span class="tool-name">Eraser</span>
+        </div>
+
+        <div class="tool-item" data-tool="line" title="Line">
+          <span class="tool-icon">📏</span>
+          <span class="tool-name">Line</span>
+        </div>
+
+        <div class="tool-item" data-tool="rectangle" title="Rectangle">
+          <span class="tool-icon">▭</span>
+          <span class="tool-name">Rectangle</span>
+        </div>
+
+        <div class="tool-item" data-tool="circle" title="Circle">
+          <span class="tool-icon">○</span>
+          <span class="tool-name">Circle</span>
+        </div>
+
+        <!-- FILL TOOL -->
+        <div class="tool-item" data-tool="fill" title="Fill">
+          <span class="tool-icon">🪣</span>
+          <span class="tool-name">Fill</span>
+        </div>
+
+        <!-- COLOR PICKER (CORRECT PLACE) -->
+        <div class="fill-color-wrapper">
+          <input type="color" id="fill-color-picker" value="#ff0000" />
+        </div>
+
+        <div class="tool-item" data-tool="text" title="Text">
+          <span class="tool-icon">A</span>
+          <span class="tool-name">Text</span>
+        </div>
+
+        <div class="tool-item" data-tool="eyedropper" title="Eyedropper">
+          <span class="tool-icon">💧</span>
+          <span class="tool-name">Pick Color</span>
+        </div>
+
+        <div class="tool-item" data-tool="select" title="Select">
+          <span class="tool-icon">⬜</span>
+          <span class="tool-name">Select</span>
+        </div>
+
+      </div>
     </div>
-    <script src="main.js"></script>
+
+    <canvas id="canvas-body" class="canvas-body"></canvas>
+  </div>
+
+  <script src="main.js"></script>
 </body>
 </html>
