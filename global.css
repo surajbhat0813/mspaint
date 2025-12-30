@@ -49,6 +49,10 @@ html, body {
     box-sizing: border-box;
 }
 
+canvas {
+  touch-action: none;
+}
+
 .tool-item:hover {
     background-color: #e8f4f8;
     border-color: #4CAF50;
